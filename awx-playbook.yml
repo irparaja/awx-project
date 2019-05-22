@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: no
+  vars:
+    awx_data_dir: awx
+    awx_root_dir: root
+  tasks:
+  - name: create directory
+    file: path=/root/{{awx_data_dir}} state=directory mode=0644
+  - name: restart the services
+    service: name=firewalld state=stopped
+  - name: install the packages
+    yum: name={{ item }} state=installed
+    with_items:
+      - device-mapper-persistent-data
+      - lvm2
+      - ansible
+      - python-devel
+      - python-pip
+      - vim-enhanced
+      - python-docker-py
+      - docker
+    ignore_errors: yes
+  - name: clone the git repo
+    git:
+      repo: https://github.com/ansible/awx.git
+      dest: /{{ awx_root_dir }}/awx
+
+  - name: clone the git repo
+    git:
+      repo: https://github.com/ansible/awx-logos.git
+      dest: /{{ awx_root_dir }}/awx/awx-logos
+  - name: restart the services
+    service: name=docker state=restart
+  - name: run the playbook
+    command: ansible-playbook -i inventory install.yml
+    args:
+      chdir: /{{ awx_root_dir }}/awx/installer/inventory
+      creates: /var/lib/awx
+   
