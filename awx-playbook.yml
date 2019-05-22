@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: 34.238.78.143
   become: yes
   gather_facts: no
   vars:
